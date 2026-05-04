@@ -523,6 +523,7 @@ function Start-Phase3 {
         @{ Id = "Telegram.TelegramDesktop"; Name = "Telegram Desktop" },
         @{ Id = "OpenJS.NodeJS.LTS"; Name = "Node.js LTS" },
         @{ Id = "Microsoft.VisualStudioCode"; Name = "VS Code" },
+        @{ Id = "Postman.Postman"; Name = "Postman" },
         @{ Id = "DanPristupov.Fork"; Name = "Fork Git UI" },
         @{ Id = "Unity.UnityHub"; Name = "Unity Hub" }
     )
