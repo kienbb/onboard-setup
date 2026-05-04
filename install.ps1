@@ -171,22 +171,31 @@ function Install-WingetPackage {
     param(
         [string]$PackageId,
         [string]$FriendlyName = $PackageId,
-        [string[]]$OverrideArgs = @()
+        [string[]]$OverrideArgs = @(),
+        [int]$Index = 0,
+        [int]$Total = 0
     )
     
+    $prefix = if ($Index -gt 0 -and $Total -gt 0) { "[$Index/$Total] " } else { "" }
+    
     if ($Script:State.CompletedPackages -contains $PackageId) {
-        Write-Log "Skipping $FriendlyName (already completed)" "INFO"
+        Write-Log "${prefix}Skipping $FriendlyName (already completed)" "INFO"
         return $true
     }
     
     if (Test-WingetPackageInstalled $PackageId) {
-        Write-Log "$FriendlyName is already installed" "SUCCESS"
+        Write-Log "${prefix}$FriendlyName is already installed" "SUCCESS"
         $Script:State.CompletedPackages += $PackageId
         Save-State
         return $true
     }
     
-    Write-Log "Installing $FriendlyName..." "INFO"
+    Write-Log "${prefix}>>> Installing $FriendlyName..." "INFO"
+    $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
+    
+    $stdoutLog = "$env:TEMP\winget-$PackageId-stdout.log".Replace(".", "_")
+    $stderrLog = "$env:TEMP\winget-$PackageId-stderr.log".Replace(".", "_")
+    
     try {
         $wingetArgs = @("install", "--id", $PackageId, "--exact", "--accept-package-agreements", "--accept-source-agreements", "--disable-interactivity")
         if ($OverrideArgs.Count -gt 0) {
@@ -194,18 +203,36 @@ function Install-WingetPackage {
             $wingetArgs += @("--override", $overrideString)
         }
         
-        $process = Start-Process winget -ArgumentList $wingetArgs -Wait -PassThru -NoNewWindow
+        $process = Start-Process winget -ArgumentList $wingetArgs -Wait -PassThru -NoNewWindow -RedirectStandardOutput $stdoutLog -RedirectStandardError $stderrLog
+        $stopwatch.Stop()
+        
+        # Log any output
+        if (Test-Path $stdoutLog) {
+            $stdout = Get-Content $stdoutLog -Raw -ErrorAction SilentlyContinue
+            if ($stdout) { Write-Log "${prefix}Output: $($stdout.Trim())" "INFO" }
+            Remove-Item $stdoutLog -Force -ErrorAction SilentlyContinue
+        }
+        if (Test-Path $stderrLog) {
+            $stderr = Get-Content $stderrLog -Raw -ErrorAction SilentlyContinue
+            if ($stderr) { Write-Log "${prefix}Error Output: $($stderr.Trim())" "WARN" }
+            Remove-Item $stderrLog -Force -ErrorAction SilentlyContinue
+        }
+        
         if ($process.ExitCode -eq 0 -or $process.ExitCode -eq -1978335189) { # Already installed code
-            Write-Log "$FriendlyName installed successfully" "SUCCESS"
+            Write-Log "${prefix}<<< $FriendlyName installed successfully (${stopwatch.Elapsed.TotalSeconds:F1}s)" "SUCCESS"
             $Script:State.CompletedPackages += $PackageId
             Save-State
             return $true
         } else {
-            Write-Log "$FriendlyName install exited with code $($process.ExitCode)" "WARN"
+            Write-Log "${prefix}<<< $FriendlyName install exited with code $($process.ExitCode) (${stopwatch.Elapsed.TotalSeconds:F1}s)" "WARN"
             return $false
         }
     } catch {
-        Write-Log "Failed to install ${FriendlyName}: $_" "ERROR"
+        $stopwatch.Stop()
+        Write-Log "${prefix}<<< Failed to install ${FriendlyName}: $_ (${stopwatch.Elapsed.TotalSeconds:F1}s)" "ERROR"
+        # Cleanup temp files
+        if (Test-Path $stdoutLog) { Remove-Item $stdoutLog -Force -ErrorAction SilentlyContinue }
+        if (Test-Path $stderrLog) { Remove-Item $stderrLog -Force -ErrorAction SilentlyContinue }
         return $false
     }
 }
@@ -498,28 +525,35 @@ function Start-Phase3 {
         @{ Id = "Unity.UnityHub"; Name = "Unity Hub" }
     )
     
+    $totalPackages = $packages.Count + 3 # +3 for .NET SDK 8, 9, 10
+    $currentIndex = 0
+    
     foreach ($pkg in $packages) {
-        Install-WingetPackage -PackageId $pkg.Id -FriendlyName $pkg.Name | Out-Null
+        $currentIndex++
+        Install-WingetPackage -PackageId $pkg.Id -FriendlyName $pkg.Name -Index $currentIndex -Total $totalPackages | Out-Null
     }
     
     # .NET SDKs
-    Install-WingetPackage -PackageId "Microsoft.DotNet.SDK.8" -FriendlyName ".NET SDK 8" | Out-Null
-    Install-WingetPackage -PackageId "Microsoft.DotNet.SDK.9" -FriendlyName ".NET SDK 9" | Out-Null
+    $currentIndex++
+    Install-WingetPackage -PackageId "Microsoft.DotNet.SDK.8" -FriendlyName ".NET SDK 8" -Index $currentIndex -Total $totalPackages | Out-Null
+    $currentIndex++
+    Install-WingetPackage -PackageId "Microsoft.DotNet.SDK.9" -FriendlyName ".NET SDK 9" -Index $currentIndex -Total $totalPackages | Out-Null
     
     # .NET 10 - attempt, skip if not available
-    Write-Log "Attempting to install .NET SDK 10..." "INFO"
+    $currentIndex++
+    Write-Log "[$currentIndex/$totalPackages] Attempting to install .NET SDK 10..." "INFO"
     try {
         $available = & winget search --id "Microsoft.DotNet.SDK.10" --exact 2>$null
         if ($LASTEXITCODE -eq 0) {
-            Install-WingetPackage -PackageId "Microsoft.DotNet.SDK.10" -FriendlyName ".NET SDK 10" | Out-Null
+            Install-WingetPackage -PackageId "Microsoft.DotNet.SDK.10" -FriendlyName ".NET SDK 10" -Index $currentIndex -Total $totalPackages | Out-Null
         } else {
-            Write-Log ".NET SDK 10 not available yet, skipping" "WARN"
+            Write-Log "[$currentIndex/$totalPackages] .NET SDK 10 not available yet, skipping" "WARN"
         }
     } catch {
-        Write-Log ".NET SDK 10 search/install failed, skipping: $_" "WARN"
+        Write-Log "[$currentIndex/$totalPackages] .NET SDK 10 search/install failed, skipping: $_" "WARN"
     }
     
-    Write-Log "Phase 3 completed" "SUCCESS"
+    Write-Log "Phase 3 completed ($totalPackages packages processed)" "SUCCESS"
     $Script:State.Phase = 4
     Save-State
 }
