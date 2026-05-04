@@ -94,6 +94,7 @@ Các phần cần xử lý **thủ công**:
 
 ### Công cụ hệ thống
 - 7-Zip
+- Notepad++
 - Windows Terminal
 - PowerToys
 - Git (đã config sẵn `kiennt` / `kiennt@pixon.games`)
