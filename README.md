@@ -110,6 +110,7 @@ Các phần cần xử lý **thủ công**:
 - Visual Studio Community 2022 (ASP.NET, Desktop C++, Unity workloads)
 - Unity Hub
 - Fork (Git UI)
+- Postman
 
 ### Runtime & Ngôn ngữ
 - Node.js LTS (bao gồm npm)
