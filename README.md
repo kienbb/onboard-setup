@@ -1,119 +1,119 @@
 # Windows Onboarding Script
 
-Tá»± Ä‘á»™ng cÃ i Ä‘áº·t toÃ n bá»™ mÃ´i trÆ°á»ng phÃ¡t triá»ƒn cho mÃ¡y Windows 11.
+Tự động cài đặt toàn bộ môi trường phát triển cho máy Windows 11.
 
-## CÃ¡ch sá»­ dá»¥ng
+## Cách sử dụng
 
-### CÃ¡ch 1: Cháº¡y trá»±c tiáº¿p tá»« GitHub (Nhanh nháº¥t)
+### Cách 1: Chạy trực tiếp từ GitHub (Nhanh nhất)
 
-Má»Ÿ **Terminal/PowerShell vá»›i quyá»n Administrator**, sau Ä‘Ã³ dÃ¡n lá»‡nh:
+Mở **Terminal/PowerShell với quyền Administrator**, sau đó dán lệnh:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/kienbb/onboard-setup/main/install.ps1' -OutFile '$env:TEMP\install.ps1'; & '$env:TEMP\install.ps1'"
 ```
 
-Script sáº½ tá»± Ä‘á»™ng:
-- Táº£i vá» `%TEMP%\install.ps1`
-- Cháº¡y vá»›i quyá»n Admin (tá»± relaunch náº¿u cáº§n)
-- CÃ i Ä‘áº·t toÃ n bá»™ vÃ  tá»± resume sau restart
+Script sẽ tự động:
+- Tải về `%TEMP%\install.ps1`
+- Chạy với quyền Admin (tự relaunch nếu cần)
+- Cài đặt toàn bộ và tự resume sau restart
 
-### CÃ¡ch 2: Táº£i script vá» mÃ¡y trÆ°á»›c
+### Cách 2: Tải script về máy trước
 
-#### 1. Clone hoáº·c download repository
+#### 1. Clone hoặc download repository
 
 ```bash
 git clone https://github.com/kienbb/onboard-setup.git
 cd onboard-setup
 ```
 
-#### 2. Má»Ÿ PowerShell vá»›i quyá»n Administrator
+#### 2. Mở PowerShell với quyền Administrator
 
-- Nháº¥n `Win + X` â†’ chá»n **Terminal (Admin)** hoáº·c **Windows PowerShell (Admin)**
-- Hoáº·c: Nháº¥p chuá»™t pháº£i vÃ o file `install.ps1` â†’ **Run with PowerShell** (script sáº½ tá»± Ä‘á»™ng yÃªu cáº§u Admin náº¿u cáº§n)
+- Nhấn `Win + X` → chọn **Terminal (Admin)** hoặc **Windows PowerShell (Admin)**
+- Hoặc: Nhấp chuột phải vào file `install.ps1` → **Run with PowerShell** (script sẽ tự động yêu cầu Admin nếu cần)
 
-#### 3. Cháº¡y script
+#### 3. Chạy script
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\install.ps1
 ```
 
-Hoáº·c náº¿u Ä‘ang á»Ÿ trong PowerShell Admin:
+Hoặc nếu đang ở trong PowerShell Admin:
 
 ```powershell
 Set-ExecutionPolicy Bypass -Scope Process -Force
 .\install.ps1
 ```
 
-## Quy trÃ¬nh cÃ i Ä‘áº·t
+## Quy trình cài đặt
 
-Script cháº¡y qua **12 Phase** tá»± Ä‘á»™ng:
+Script chạy qua **12 Phase** tự động:
 
-| Phase | Ná»™i dung | TÆ°Æ¡ng tÃ¡c |
+| Phase | Nội dung | Tương tác |
 |-------|----------|-----------|
-| 0 | Bootstrap (Chocolatey, Winget) | KhÃ´ng |
-| 1 | WSL2, IIS, Ubuntu, Dark Mode, Git config | KhÃ´ng |
-| 2 | Kiá»ƒm tra sau restart | KhÃ´ng |
-| 3 | CÃ i pháº§n má»m (Chrome, Discord, VS Code, Node.js, ...) | KhÃ´ng |
-| 4 | Python 3.10â€“3.13 qua pyenv-win | KhÃ´ng |
-| 5 | Rust | KhÃ´ng |
-| 6 | IIS Hosting Bundle (.NET 8, 9) | KhÃ´ng |
-| 7 | Visual Studio Community (ASP.NET, C++, Unity) | Hiá»‡n progress UI, **khÃ´ng cáº§n click** |
-| 8 | OpenCode Desktop | KhÃ´ng |
-| 9 | Claude Code CLI + OpenCode CLI | KhÃ´ng |
-| 10 | VS Code Extension (Claude Code) | KhÃ´ng |
-| 11 | Dá»n dáº¹p & bÃ¡o cÃ¡o | KhÃ´ng |
+| 0 | Bootstrap (Chocolatey, Winget) | Không |
+| 1 | WSL2, IIS, Ubuntu, Dark Mode, Git config | Không |
+| 2 | Kiểm tra sau restart | Không |
+| 3 | Cài phần mềm (Chrome, Discord, VS Code, Node.js, ...) | Không |
+| 4 | Python 3.10–3.13 qua pyenv-win | Không |
+| 5 | Rust | Không |
+| 6 | IIS Hosting Bundle (.NET 8, 9) | Không |
+| 7 | Visual Studio Community (ASP.NET, C++, Unity) | Hiện progress UI, **không cần click** |
+| 8 | OpenCode Desktop | Không |
+| 9 | Claude Code CLI + OpenCode CLI | Không |
+| 10 | VS Code Extension (Claude Code) | Không |
+| 11 | Dọn dẹp & báo cáo | Không |
 
-## Khá»Ÿi Ä‘á»™ng láº¡i mÃ¡y
+## Khởi động lại máy
 
-Script sáº½ **tá»± Ä‘á»™ng restart mÃ¡y 1 láº§n** sau Phase 1 (khi cÃ i WSL2 + IIS).
-- Sau restart, script tá»± Ä‘á»™ng cháº¡y láº¡i vÃ  tiáº¿p tá»¥c tá»« Phase 2.
-- **Báº¡n khÃ´ng cáº§n lÃ m gÃ¬ thÃªm.**
+Script sẽ **tự động restart máy 1 lần** sau Phase 1 (khi cài WSL2 + IIS).
+- Sau restart, script tự động chạy lại và tiếp tục từ Phase 2.
+- **Bạn không cần làm gì thêm.**
 
-## Náº¿u script bá»‹ ngáº¯t giá»¯a chá»«ng
+## Nếu script bị ngắt giữa chừng
 
-DÃ¹ bá»‹ **máº¥t Ä‘iá»‡n, crash, hoáº·c Ä‘Ã³ng cá»­a sá»•**, báº¡n chá»‰ cáº§n:
+Dù bị **mất điện, crash, hoặc đóng cửa sổ**, bạn chỉ cần:
 
 ```powershell
 .\install.ps1
 ```
 
-Script sáº½ tá»± Ä‘á»™ng:
-- Äá»c tráº¡ng thÃ¡i Ä‘Ã£ lÆ°u
-- **Bá» qua cÃ¡c pháº§n má»m Ä‘Ã£ cÃ i**
-- Tiáº¿p tá»¥c tá»« Ä‘iá»ƒm giÃ¡n Ä‘oáº¡n
+Script sẽ tự động:
+- Đọc trạng thái đã lưu
+- **Bỏ qua các phần mềm đã cài**
+- Tiếp tục từ điểm gián đoạn
 
-## Sau khi script hoÃ n táº¥t
+## Sau khi script hoàn tất
 
-CÃ¡c pháº§n cáº§n xá»­ lÃ½ **thá»§ cÃ´ng**:
+Các phần cần xử lý **thủ công**:
 
-1. **Unity**: Má»Ÿ Unity Hub â†’ Ä‘Äƒng nháº­p â†’ cÃ i Unity Editor 6000.4 + modules Android, WebGL, iOS
-2. **WSL2/Ubuntu**: Náº¿u láº§n Ä‘áº§u khá»Ÿi Ä‘á»™ng Ubuntu, cáº§n táº¡o username/password
-3. **Restart**: Náº¿u cÃ³ thÃ´ng bÃ¡o yÃªu cáº§u restart tá»« báº¥t ká»³ pháº§n má»m nÃ o
+1. **Unity**: Mở Unity Hub → đăng nhập → cài Unity Editor 6000.4 + modules Android, WebGL, iOS
+2. **WSL2/Ubuntu**: Nếu lần đầu khởi động Ubuntu, cần tạo username/password
+3. **Restart**: Nếu có thông báo yêu cầu restart từ bất kỳ phần mềm nào
 
-## Danh sÃ¡ch pháº§n má»m Ä‘Æ°á»£c cÃ i
+## Danh sách phần mềm được cài
 
-### CÃ´ng cá»¥ há»‡ thá»‘ng
+### Công cụ hệ thống
 - 7-Zip
 - Windows Terminal
 - PowerToys
-- Git (Ä‘Ã£ config sáºµn `kiennt` / `kiennt@pixon.games`)
+- Git (đã config sẵn `kiennt` / `kiennt@pixon.games`)
 - WSL2 + Ubuntu
 
-### TrÃ¬nh duyá»‡t & Giao tiáº¿p
+### Trình duyệt & Giao tiếp
 - Google Chrome
 - Discord
 - Telegram Desktop
 
-### Láº­p trÃ¬nh
+### Lập trình
 - VS Code + Claude Code Extension
 - Visual Studio Community 2022 (ASP.NET, Desktop C++, Unity workloads)
 - Unity Hub
 - Fork (Git UI)
 
-### Runtime & NgÃ´n ngá»¯
-- Node.js LTS (bao gá»“m npm)
-- Python 3.10, 3.11, 3.12, 3.13 (qua pyenv-win, máº·c Ä‘á»‹nh 3.13)
-- .NET SDK 8, 9 (10 náº¿u cÃ³ sáºµn)
+### Runtime & Ngôn ngữ
+- Node.js LTS (bao gồm npm)
+- Python 3.10, 3.11, 3.12, 3.13 (qua pyenv-win, mặc định 3.13)
+- .NET SDK 8, 9 (10 nếu có sẵn)
 - Rust
 
 ### Server
@@ -127,21 +127,21 @@ CÃ¡c pháº§n cáº§n xá»­ lÃ½ **thá»§ cÃ´ng**:
 
 ## Troubleshooting
 
-### Lá»—i `ExecutionPolicy`
-Náº¿u gáº·p lá»—i chÃ­nh sÃ¡ch thá»±c thi:
+### Lỗi `ExecutionPolicy`
+Nếu gặp lỗi chính sách thực thi:
 ```powershell
 Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
 ```
 
-### Winget khÃ´ng tÃ¬m tháº¥y
-TrÃªn Windows 11, Winget thÆ°á»ng Ä‘Ã£ cÃ³ sáºµn. Náº¿u thiáº¿u, script sáº½ cá»‘ cÃ i qua Chocolatey. Náº¿u váº«n lá»—i, cÃ i [App Installer](https://apps.microsoft.com/detail/9NBLGGH4NNS1) tá»« Microsoft Store.
+### Winget không tìm thấy
+Trên Windows 11, Winget thường đã có sẵn. Nếu thiếu, script sẽ cố cài qua Chocolatey. Nếu vẫn lỗi, cài [App Installer](https://apps.microsoft.com/detail/9NBLGGH4NNS1) từ Microsoft Store.
 
-### Visual Studio cÃ i lÃ¢u
-Visual Studio 2022 ráº¥t náº·ng (15â€“30GB tÃ¹y workload). Phase 7 cÃ³ thá»ƒ máº¥t **30â€“90 phÃºt**. Progress window sáº½ hiá»‡n nhÆ°ng **tá»± Ä‘á»™ng cháº¡y**, báº¡n khÃ´ng cáº§n báº¥m gÃ¬.
+### Visual Studio cài lâu
+Visual Studio 2022 rất nặng (15–30GB tùy workload). Phase 7 có thể mất **30–90 phút**. Progress window sẽ hiện nhưng **tự động chạy**, bạn không cần bấm gì.
 
 ### Log file
-Xem chi tiáº¿t táº¡i: `%TEMP%\onboarding.log`
+Xem chi tiết tại: `%TEMP%\onboarding.log`
 
-## TÃ¡c giáº£
+## Tác giả
 
-Script Ä‘Æ°á»£c táº¡o tá»± Ä‘á»™ng cho `kiennt@pixon.games`.
+Script được tạo tự động cho `kiennt@pixon.games`.
