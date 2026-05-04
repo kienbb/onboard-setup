@@ -192,9 +192,7 @@ function Install-WingetPackage {
     
     Write-Log "${prefix}>>> Installing $FriendlyName..." "INFO"
     $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
-    
-    $stdoutLog = "$env:TEMP\winget-$PackageId-stdout.log".Replace(".", "_")
-    $stderrLog = "$env:TEMP\winget-$PackageId-stderr.log".Replace(".", "_")
+    $timeoutSeconds = 900  # 15 minutes max per package
     
     try {
         $wingetArgs = @("install", "--id", $PackageId, "--exact", "--accept-package-agreements", "--accept-source-agreements", "--disable-interactivity")
@@ -203,19 +201,25 @@ function Install-WingetPackage {
             $wingetArgs += @("--override", $overrideString)
         }
         
-        $process = Start-Process winget -ArgumentList $wingetArgs -Wait -PassThru -NoNewWindow -RedirectStandardOutput $stdoutLog -RedirectStandardError $stderrLog
+        # Use Start-Process without -Wait to support timeout
+        $process = Start-Process winget -ArgumentList $wingetArgs -PassThru -NoNewWindow
+        Write-Log "${prefix}Started winget (PID: $($process.Id)) for $FriendlyName" "INFO"
+        
+        # Wait with timeout
+        $completed = $process.WaitForExit($timeoutSeconds * 1000)
         $stopwatch.Stop()
         
-        # Log any output
-        if (Test-Path $stdoutLog) {
-            $stdout = Get-Content $stdoutLog -Raw -ErrorAction SilentlyContinue
-            if ($stdout) { Write-Log "${prefix}Output: $($stdout.Trim())" "INFO" }
-            Remove-Item $stdoutLog -Force -ErrorAction SilentlyContinue
-        }
-        if (Test-Path $stderrLog) {
-            $stderr = Get-Content $stderrLog -Raw -ErrorAction SilentlyContinue
-            if ($stderr) { Write-Log "${prefix}Error Output: $($stderr.Trim())" "WARN" }
-            Remove-Item $stderrLog -Force -ErrorAction SilentlyContinue
+        if (-not $completed) {
+            Write-Log "${prefix}!!! $FriendlyName install timed out after ${timeoutSeconds}s. Killing process..." "WARN"
+            try {
+                Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue
+                # Also try to kill any child installer processes spawned by winget
+                Get-CimInstance Win32_Process -Filter "ParentProcessId = $($process.Id)" | ForEach-Object {
+                    try { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue } catch {}
+                }
+            } catch {}
+            Write-Log "${prefix}!!! $FriendlyName skipped due to timeout. You may need to install it manually." "WARN"
+            return $false
         }
         
         if ($process.ExitCode -eq 0 -or $process.ExitCode -eq -1978335189) { # Already installed code
@@ -230,9 +234,6 @@ function Install-WingetPackage {
     } catch {
         $stopwatch.Stop()
         Write-Log "${prefix}<<< Failed to install ${FriendlyName}: $_ (${stopwatch.Elapsed.TotalSeconds:F1}s)" "ERROR"
-        # Cleanup temp files
-        if (Test-Path $stdoutLog) { Remove-Item $stdoutLog -Force -ErrorAction SilentlyContinue }
-        if (Test-Path $stderrLog) { Remove-Item $stderrLog -Force -ErrorAction SilentlyContinue }
         return $false
     }
 }
