@@ -514,6 +514,7 @@ function Start-Phase3 {
     
     $packages = @(
         @{ Id = "7zip.7zip"; Name = "7-Zip" },
+        @{ Id = "Notepad++.Notepad++"; Name = "Notepad++" },
         @{ Id = "Google.Chrome"; Name = "Google Chrome" },
         @{ Id = "Discord.Discord"; Name = "Discord" },
         @{ Id = "Git.Git"; Name = "Git" },
